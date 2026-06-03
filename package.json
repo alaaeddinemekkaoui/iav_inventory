@@ -38,6 +38,7 @@
     "appId": "ma.iav.inventaire",
     "productName": "Inventaire IAV",
     "asar": true,
+    "afterPack": "scripts/after-pack.cjs",
     "directories": {
       "output": "desktop-portable"
     },
@@ -48,7 +49,15 @@
     "extraResources": [
       {
         "from": ".next/standalone",
-        "to": "standalone"
+        "to": "standalone",
+        "filter": [
+          "**/*",
+          "!data/**",
+          "!backups/**",
+          "!desktop-build/**",
+          "!desktop-portable/**",
+          "!dist-desktop/**"
+        ]
       }
     ],
     "win": {
