@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, dialog } = require("electron");
+const { app, BrowserWindow, dialog, Menu } = require("electron");
 const { spawn } = require("node:child_process");
 const http = require("node:http");
 const path = require("node:path");
@@ -90,6 +90,7 @@ async function createWindow() {
     height: 820,
     minWidth: 1024,
     minHeight: 700,
+    autoHideMenuBar: true,
     icon: iconPath(),
     show: false,
     title: "Inventaire IAV",
@@ -99,12 +100,14 @@ async function createWindow() {
     },
   });
 
+  mainWindow.setMenuBarVisibility(false);
   mainWindow.once("ready-to-show", () => mainWindow.show());
   await mainWindow.loadURL(url);
 }
 
 app.whenReady().then(async () => {
   try {
+    Menu.setApplicationMenu(null);
     startServer();
     await createWindow();
   } catch (error) {
