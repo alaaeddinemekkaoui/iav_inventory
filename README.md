@@ -20,6 +20,12 @@ Add demonstration data:
 npm run seed
 ```
 
+## Local Authentication
+
+On first launch, the app asks you to create the local Super Admin account. The password is hashed and stored only in `data/auth.json`; there is no cloud login and no default admin password.
+
+Additional users can be created from the `Utilisateurs` page by a Super Admin.
+
 ## Desktop App
 
 Build a portable Windows executable:

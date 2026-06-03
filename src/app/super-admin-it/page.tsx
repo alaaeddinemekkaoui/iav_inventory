@@ -46,8 +46,8 @@ export default async function SuperAdminItPage() {
               <AdminLink href="/users" icon={<Users size={18} />} label="Utilisateurs" detail="Creer les comptes" />
               <AdminLink href="/history" icon={<FileClock size={18} />} label="Historique" detail={`${data.movements.length} mouvements`} />
             </div>
-            <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900">
-              Cette page est cachee de la navigation utilisateur. Pour une vraie securite, il faudra ajouter une authentification et limiter cette route au role IT.
+            <p className="mt-4 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-sm leading-6 text-teal-900">
+              Cette page est protegee par l authentification locale et limitee au role Super Admin IT.
             </p>
           </Panel>
         </section>

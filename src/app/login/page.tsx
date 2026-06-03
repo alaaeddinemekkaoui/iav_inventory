@@ -1,13 +1,15 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
-import { defaultSuperAdmin, getCurrentUser } from "@/lib/auth";
+import { LocalSetupForm } from "@/components/local-setup-form";
+import { getCurrentUser, isLocalAuthConfigured } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
-  const user = await getCurrentUser();
+  const [user, configured] = await Promise.all([getCurrentUser(), isLocalAuthConfigured()]);
   if (user) redirect("/");
+  const setupMode = !configured;
 
   return (
     <main className="grid min-h-dvh place-items-center bg-[#eef3ef] px-4 py-10">
@@ -17,12 +19,14 @@ export default async function LoginPage() {
             <Image src="/iav-logo.png" alt="Logo IAV Hassan II" width={72} height={72} className="size-18 rounded-full object-contain" priority />
             <div>
               <p className="text-lg font-semibold text-slate-950 text-balance">Inventaire IAV</p>
-              <p className="mt-1 text-sm text-slate-500 text-pretty">Connexion admin et utilisateurs</p>
+              <p className="mt-1 text-sm text-slate-500 text-pretty">
+                {setupMode ? "Configuration du premier compte local" : "Connexion admin et utilisateurs"}
+              </p>
             </div>
           </div>
         </div>
 
-        <LoginForm defaultUsername={defaultSuperAdmin.username} defaultPassword={defaultSuperAdmin.password} />
+        {setupMode ? <LocalSetupForm /> : <LoginForm />}
       </section>
     </main>
   );

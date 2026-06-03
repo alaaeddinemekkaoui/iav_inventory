@@ -35,12 +35,6 @@ const roleRank: Record<UserRole, number> = {
   SUPER_ADMIN: 3,
 };
 
-const defaultSuperAdmin = {
-  fullName: "Super Admin IT",
-  username: "superadmin",
-  password: "superadmin123",
-};
-
 function newId(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -64,6 +58,7 @@ function verifyPassword(password: string, passwordHash: string) {
   const [salt, storedHash] = passwordHash.split(":");
   if (!salt || !storedHash) return false;
   const candidate = hashPassword(password, salt).split(":")[1];
+  if (candidate.length !== storedHash.length) return false;
   return timingSafeEqual(Buffer.from(candidate, "hex"), Buffer.from(storedHash, "hex"));
 }
 
@@ -79,36 +74,29 @@ async function writeAuth(data: AuthData) {
   await writeStore("auth", data);
 }
 
-export async function ensureDefaultSuperAdmin() {
+export async function isLocalAuthConfigured() {
   const data = await readAuth();
-  if (data.users.some((user) => user.role === "SUPER_ADMIN")) return data;
-
-  const now = new Date().toISOString();
-  data.users.push({
-    id: newId("usr"),
-    fullName: defaultSuperAdmin.fullName,
-    username: defaultSuperAdmin.username,
-    role: "SUPER_ADMIN",
-    passwordHash: hashPassword(defaultSuperAdmin.password),
-    createdAt: now,
-  });
-  await writeAuth(data);
-  return data;
+  return data.users.length > 0;
 }
 
 export async function listUsers() {
-  const data = await ensureDefaultSuperAdmin();
+  const data = await readAuth();
   return data.users.map(publicUser).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export async function login(username: string, password: string) {
-  const data = await ensureDefaultSuperAdmin();
+  const data = await readAuth();
   const user = data.users.find((item) => item.username.toLowerCase() === username.toLowerCase());
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return false;
   }
 
+  await createSession(data, user);
+  return true;
+}
+
+async function createSession(data: AuthData, user: AppUser) {
   const token = randomBytes(32).toString("hex");
   data.sessions.push({
     token,
@@ -124,8 +112,6 @@ export async function login(username: string, password: string) {
     path: "/",
     maxAge: 60 * 60 * 8,
   });
-
-  return true;
 }
 
 export async function logout() {
@@ -145,7 +131,7 @@ export async function getCurrentUser(): Promise<CurrentUser | undefined> {
   const token = cookieStore.get(sessionCookie)?.value;
   if (!token) return undefined;
 
-  const data = await ensureDefaultSuperAdmin();
+  const data = await readAuth();
   const session = data.sessions.find((item) => item.token === token);
   const user = session ? data.users.find((item) => item.id === session.userId) : undefined;
 
@@ -171,7 +157,7 @@ export async function createUserAccount(input: {
   role: UserRole;
 }) {
   await requireRole("SUPER_ADMIN");
-  const data = await ensureDefaultSuperAdmin();
+  const data = await readAuth();
   const username = input.username.trim();
 
   if (data.users.some((user) => user.username.toLowerCase() === username.toLowerCase())) {
@@ -189,4 +175,26 @@ export async function createUserAccount(input: {
   await writeAuth(data);
 }
 
-export { defaultSuperAdmin };
+export async function createInitialSuperAdmin(input: {
+  fullName: string;
+  username: string;
+  password: string;
+}) {
+  const data = await readAuth();
+  if (data.users.length > 0) {
+    throw new Error("L'authentification locale est deja configuree.");
+  }
+
+  const now = new Date().toISOString();
+  const user: AppUser = {
+    id: newId("usr"),
+    fullName: input.fullName.trim(),
+    username: input.username.trim(),
+    role: "SUPER_ADMIN",
+    passwordHash: hashPassword(input.password),
+    createdAt: now,
+  };
+
+  data.users.push(user);
+  await createSession(data, user);
+}

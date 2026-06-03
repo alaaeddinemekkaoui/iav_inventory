@@ -9,13 +9,7 @@ const initialState = {
   message: "",
 };
 
-export function LoginForm({
-  defaultUsername,
-  defaultPassword,
-}: {
-  defaultUsername: string;
-  defaultPassword: string;
-}) {
+export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
@@ -37,8 +31,8 @@ export function LoginForm({
         <LogIn size={17} />
         {pending ? "Connexion..." : "Se connecter"}
       </button>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 text-pretty">
-        Premier acces IT: username <span className="font-semibold">{defaultUsername}</span>, mot de passe <span className="font-semibold">{defaultPassword}</span>.
+      <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600 text-pretty">
+        Authentification locale: les comptes et sessions sont conserves dans le dossier data de cette application.
       </p>
     </form>
   );
