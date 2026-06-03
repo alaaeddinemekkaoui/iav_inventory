@@ -21,6 +21,7 @@ export default async function SettingsPage({
   const [data, backups] = await Promise.all([readInventory(), listInventoryBackups()]);
   const { settings } = data;
   const editMode = params.edit === "1";
+  const latestBackup = backups[0];
 
   return (
     <main>
@@ -36,12 +37,24 @@ export default async function SettingsPage({
             title="Backups JSON"
             hint="Un backup automatique est cree apres chaque modification. Les 50 derniers backups automatiques sont gardes."
             action={
-              <form action={createManualBackup}>
-                <button className={buttonStyles()}>
-                  <HardDriveDownload size={17} />
-                  Creer backup
-                </button>
-              </form>
+              <div className="flex flex-wrap gap-2">
+                {latestBackup ? (
+                  <Link
+                    href={`/backups/${latestBackup.name}`}
+                    download
+                    className={buttonStyles({ variant: "secondary" })}
+                  >
+                    <Download size={17} />
+                    Telecharger dernier backup
+                  </Link>
+                ) : null}
+                <form action={createManualBackup}>
+                  <button className={buttonStyles()}>
+                    <HardDriveDownload size={17} />
+                    Creer backup
+                  </button>
+                </form>
+              </div>
             }
           >
             <BackupTable backups={backups} />
