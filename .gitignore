@@ -19,6 +19,9 @@
 
 # production
 /build
+/desktop-build
+/desktop-portable
+/dist-desktop
 
 # misc
 .DS_Store

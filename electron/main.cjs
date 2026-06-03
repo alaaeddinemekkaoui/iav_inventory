@@ -9,6 +9,10 @@ let serverProcess;
 let mainWindow;
 
 function appBaseDir() {
+  if (app.isPackaged && process.env.PORTABLE_EXECUTABLE_DIR) {
+    return process.env.PORTABLE_EXECUTABLE_DIR;
+  }
+
   return app.isPackaged ? path.dirname(process.execPath) : app.getAppPath();
 }
 
