@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "desktop-build/**",
     "desktop-portable/**",
+    "desktop-release/**",
     "dist-desktop/**",
     "out/**",
     "build/**",

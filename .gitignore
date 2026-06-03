@@ -20,6 +20,8 @@
 # production
 /build/*
 !/build/icon.ico
+!/build/installerHeader.bmp
+!/build/installerSidebar.bmp
 /desktop-build
 /desktop-portable
 /desktop-release
