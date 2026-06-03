@@ -1,4 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) inventory application.
+
+## Local Data
+
+The app stores everything locally as JSON files. No PostgreSQL, Docker, or external database is required.
+
+- `data/inventory.json` stores materials, movements, and settings.
+- `data/auth.json` stores local users and sessions.
+- `data/backups/` stores JSON backup snapshots.
+
+The folders are created automatically when the app starts. To use a different data folder, set:
+
+```txt
+INVENTAIRE_DATA_DIR=C:\InventaireData
+```
+
+Add demonstration data:
+
+```bash
+npm run seed
+```
+
+## Desktop App
+
+Build a portable Windows executable:
+
+```bash
+npm run desktop:build
+```
+
+The output is created in `dist-desktop/`. When the executable runs, it creates a `data` folder next to the `.exe`, so the app can be moved with its data and backups together.
+
+For a quick desktop test without packaging:
+
+```bash
+npm run desktop
+```
 
 ## Getting Started
 
