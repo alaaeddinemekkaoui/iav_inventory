@@ -28,7 +28,7 @@ Build a portable Windows executable:
 npm run desktop:build
 ```
 
-The output is created in `dist-desktop/`. When the executable runs, it creates a `data` folder next to the `.exe`, so the app can be moved with its data and backups together.
+The output is created in `desktop-build/`. When the executable runs, it creates a `data` folder next to the `.exe`, so the app can be moved with its data and backups together.
 
 For a quick desktop test without packaging:
 

@@ -39,7 +39,7 @@
     "productName": "Inventaire IAV",
     "asar": true,
     "directories": {
-      "output": "dist-desktop"
+      "output": "desktop-build"
     },
     "files": [
       "electron/**/*",
@@ -52,6 +52,7 @@
       }
     ],
     "win": {
+      "signAndEditExecutable": false,
       "target": [
         "portable"
       ]
