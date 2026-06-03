@@ -26,6 +26,12 @@ function dataDir() {
   return path.join(appBaseDir(), "data");
 }
 
+function iconPath() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "icon.ico")
+    : path.join(app.getAppPath(), "build", "icon.ico");
+}
+
 function waitForServer(url, attempts = 80) {
   return new Promise((resolve, reject) => {
     let remaining = attempts;
@@ -84,6 +90,7 @@ async function createWindow() {
     height: 820,
     minWidth: 1024,
     minHeight: 700,
+    icon: iconPath(),
     show: false,
     title: "Inventaire IAV",
     webPreferences: {

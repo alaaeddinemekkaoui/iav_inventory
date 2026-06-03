@@ -34,7 +34,12 @@ Build a portable Windows executable:
 npm run desktop:build
 ```
 
-The output is created in `desktop-portable/`. When the executable runs, it creates a `data` folder next to the `.exe`, so the app can be moved with its data and backups together.
+The output is created in `desktop-release/` and includes both:
+
+- `Inventaire IAV 0.1.0.exe` for the portable version.
+- `Inventaire IAV Setup 0.1.0.exe` for the installer.
+
+Both use the IAV logo as the Windows app icon. When the portable executable runs, it creates a `data` folder next to the `.exe`, so the app can be moved with its data and backups together.
 
 For a quick desktop test without packaging:
 

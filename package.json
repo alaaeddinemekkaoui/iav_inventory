@@ -11,7 +11,9 @@
     "lint": "eslint",
     "seed": "node scripts/seed.mjs",
     "desktop": "npm run build && electron .",
-    "desktop:build": "npm run build && electron-builder --win portable"
+    "desktop:build": "npm run build && electron-builder --win",
+    "desktop:portable": "npm run build && electron-builder --win portable",
+    "desktop:installer": "npm run build && electron-builder --win nsis"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -40,13 +42,18 @@
     "asar": true,
     "afterPack": "scripts/after-pack.cjs",
     "directories": {
-      "output": "desktop-portable"
+      "buildResources": "build",
+      "output": "desktop-release"
     },
     "files": [
       "electron/**/*",
       "package.json"
     ],
     "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "icon.ico"
+      },
       {
         "from": ".next/standalone",
         "to": "standalone",
@@ -61,10 +68,18 @@
       }
     ],
     "win": {
+      "icon": "build/icon.ico",
       "signAndEditExecutable": false,
       "target": [
-        "portable"
+        "portable",
+        "nsis"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     }
   }
 }

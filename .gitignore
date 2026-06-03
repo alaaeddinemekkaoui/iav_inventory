@@ -18,9 +18,11 @@
 /out/
 
 # production
-/build
+/build/*
+!/build/icon.ico
 /desktop-build
 /desktop-portable
+/desktop-release
 /dist-desktop
 
 # misc
