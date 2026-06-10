@@ -1,0 +1,64 @@
+
+> inventaire@0.1.0 dev
+> node scripts/next-with-fallback.mjs dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+- Environments: .env.local, .env
+✓ Ready in 1828ms
+Creating turbopack project { dir: 'C:\\Users\\user\\Desktop\\inventaire', testMode: true }
+
+ GET /inventory 307 in 131ms (next.js: 41ms, application-code: 90ms)
+ GET /login 200 in 693ms (next.js: 383ms, application-code: 310ms)
+✓ Compiled in 733ms
+ GET / 307 in 1201ms (next.js: 602ms, application-code: 599ms)
+ GET /login 200 in 269ms (next.js: 59ms, application-code: 210ms)
+ POST /login 200 in 191ms (next.js: 9ms, application-code: 182ms)
+  └─ ƒ loginAction({"message":""}, {}) in 101ms src/app/auth-actions.ts
+ POST /login 200 in 87ms (next.js: 10ms, application-code: 77ms)
+  └─ ƒ loginAction({"message":"Identifiants invalides."}, {}) in 52ms src/app/auth-actions.ts
+ GET / 200 in 635ms (next.js: 167ms, application-code: 468ms)
+ POST /login 303 in 790ms (next.js: 11ms, application-code: 779ms)
+  └─ ƒ loginAction({"message":"Identifiants invalides."}, {}) in 80ms src/app/auth-actions.ts
+ GET /inventory 200 in 856ms (next.js: 295ms, application-code: 560ms)
+ GET /inventory?sort=createdAt&dir=desc 200 in 238ms (next.js: 9ms, application-code: 229ms)
+ POST /inventory?sort=createdAt&dir=desc 200 in 472ms (next.js: 16ms, application-code: 456ms)
+  └─ ƒ clearFlashAction() in 5ms src/app/flash-actions.ts
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 783ms (next.js: 8ms, application-code: 775ms)
+✓ Compiled in 211ms
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 480ms (next.js: 310ms, application-code: 169ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 1980ms (next.js: 32ms, application-code: 1948ms)
+✓ Compiled in 377ms
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 371ms (next.js: 243ms, application-code: 129ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 1969ms (next.js: 23ms, application-code: 1946ms)
+✓ Compiled in 636ms
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 292ms (next.js: 170ms, application-code: 122ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 1458ms (next.js: 3ms, application-code: 1454ms)
+✓ Compiled in 600ms
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 487ms (next.js: 114ms, application-code: 372ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 359ms (next.js: 7ms, application-code: 353ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 232ms (next.js: 8ms, application-code: 225ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 353ms (next.js: 4ms, application-code: 349ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 322ms (next.js: 7ms, application-code: 314ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 474ms (next.js: 7ms, application-code: 467ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 198ms (next.js: 5ms, application-code: 193ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 312ms (next.js: 6ms, application-code: 306ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 533ms (next.js: 7ms, application-code: 526ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 329ms (next.js: 6ms, application-code: 323ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 248ms (next.js: 5ms, application-code: 243ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 173ms (next.js: 3ms, application-code: 170ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 252ms (next.js: 2ms, application-code: 249ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 284ms (next.js: 5ms, application-code: 279ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 107ms (next.js: 5ms, application-code: 102ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 190ms (next.js: 5ms, application-code: 185ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 207ms (next.js: 7ms, application-code: 200ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 161ms (next.js: 3ms, application-code: 158ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 225ms (next.js: 2ms, application-code: 223ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 120ms (next.js: 3ms, application-code: 117ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 125ms (next.js: 3ms, application-code: 122ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 164ms (next.js: 3ms, application-code: 161ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 161ms (next.js: 3ms, application-code: 158ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 281ms (next.js: 3ms, application-code: 278ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 270ms (next.js: 7ms, application-code: 263ms)
+ GET /inventory?edit=1&sort=createdAt&dir=desc 200 in 137ms (next.js: 3ms, application-code: 135ms)

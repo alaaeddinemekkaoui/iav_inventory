@@ -15,7 +15,7 @@ export function LocalSetupForm() {
   return (
     <form action={formAction} className="grid gap-4 px-6 py-6">
       {state.message ? (
-        <p role="alert" aria-live="polite" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p role="alert" aria-live="polite" className="rounded-lg border border-iav-red/25 bg-iav-red-soft px-3 py-2 text-sm text-iav-red">
           {state.message}
         </p>
       ) : null}
@@ -39,7 +39,7 @@ export function LocalSetupForm() {
         <ShieldCheck size={17} />
         {pending ? "Configuration..." : "Creer le Super Admin local"}
       </button>
-      <p className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs leading-5 text-teal-900 text-pretty">
+      <p className="rounded-lg border border-iav-green/25 bg-iav-green-soft px-3 py-2 text-xs leading-5 text-iav-green text-pretty">
         Ce compte est enregistre localement dans le dossier data de cette application. Aucun service externe n est utilise.
       </p>
     </form>

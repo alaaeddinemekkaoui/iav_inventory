@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { editMaterialAdmin } from "@/app/actions";
-import { MaterialEditDialog } from "@/components/material-edit-dialog";
+import { DialogCloseButton, MaterialEditDialog } from "@/components/material-edit-dialog";
 import { MaterialDeleteButton } from "@/components/material-delete-button";
+import { StatusChangeDialog } from "@/components/status-change-dialog";
 import { InventorySettings, Material, Movement } from "@/lib/store";
 import { MaterialStatus, movementLabel, statusLabel } from "@/lib/inventory";
+import { getCategoryLabel, getDepartmentLabel, getDirectionLabel, getFullAssetCode, getServiceLabel, getSubCategoryLabel } from "@/lib/coding";
 import { buttonStyles, cn, fieldStyles } from "@/lib/ui";
 import type { SortDirection } from "@/lib/search";
 
@@ -22,10 +24,10 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <header className="border-b border-slate-200/80 bg-[#f8faf8]">
+    <header className="border-b border-slate-200/80 bg-iav-cream">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-4 py-7 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-xs font-semibold text-teal-700">{eyebrow}</p>
+          <p className="text-xs font-semibold text-iav-green">{eyebrow}</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-950 text-balance">{title}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 text-pretty">{description}</p>
         </div>
@@ -54,7 +56,7 @@ export function Panel({
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-950 text-balance">
-          {icon ? <span className="text-teal-700">{icon}</span> : null}
+          {icon ? <span className="text-iav-green">{icon}</span> : null}
           {title}
         </h2>
         {aside ? <span className="text-xs font-medium text-slate-500">{aside}</span> : null}
@@ -97,24 +99,36 @@ export function SelectField({
   name,
   values,
   defaultValue,
+  value,
+  onChange,
+  required = false,
 }: {
   label: string;
   name: string;
-  values: string[];
+  values: Array<string | { value: string; label: string }>;
   defaultValue?: string;
+  value?: string;
+  onChange?: React.ChangeEventHandler<HTMLSelectElement>;
+  required?: boolean;
 }) {
   return (
     <label className="grid gap-1.5 text-sm">
       <span className="font-medium text-slate-700">{label}</span>
       <select
         name={name}
-        defaultValue={defaultValue ?? ""}
+        defaultValue={value === undefined ? defaultValue ?? "" : undefined}
+        value={value}
+        onChange={onChange}
+        required={required}
         className={cn(fieldStyles, "h-10")}
       >
         <option value="">Choisir</option>
-        {values.map((value) => (
-          <option key={value} value={value}>{value}</option>
-        ))}
+        {values.map((option) => {
+          const value = typeof option === "string" ? option : option.value;
+          const optionLabel = typeof option === "string" ? option : option.label;
+
+          return <option key={`${value}-${optionLabel}`} value={value}>{optionLabel}</option>;
+        })}
       </select>
     </label>
   );
@@ -150,7 +164,7 @@ export function Stat({
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-semibold text-slate-500">{label}</p>
-        <span className="grid size-8 place-items-center rounded-lg bg-teal-50 text-teal-700">{icon}</span>
+        <span className="grid size-8 place-items-center rounded-lg bg-iav-green-soft text-iav-green">{icon}</span>
       </div>
       <p className="mt-3 text-3xl font-semibold text-slate-950 tabular-nums">{value}</p>
       <p className="mt-1 truncate text-xs text-slate-500">{detail}</p>
@@ -160,10 +174,11 @@ export function Stat({
 
 export function Badge({ children, status }: { children: React.ReactNode; status: MaterialStatus }) {
   const styles: Record<MaterialStatus, string> = {
-    STOCK: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    DISPATCHED: "border-blue-200 bg-blue-50 text-blue-800",
-    MUTATED: "border-amber-200 bg-amber-50 text-amber-800",
-    DECHARGED: "border-rose-200 bg-rose-50 text-rose-800",
+    STOCK: "border-iav-green/25 bg-iav-green-soft text-iav-green",
+    DISPATCHED: "border-iav-green/25 bg-white text-iav-green",
+    MUTATED: "border-iav-red/25 bg-white text-iav-red",
+    DECHARGED: "border-iav-red/25 bg-iav-red-soft text-iav-red",
+    REFORMED: "border-iav-red/25 bg-iav-red-soft text-iav-red",
   };
 
   return (
@@ -190,25 +205,32 @@ export function MaterialTable({
 }) {
   const headers = [
     { label: "Code barre", sortKey: "codeBarre" },
-    { label: "Code famille", sortKey: "codeFamille" },
-    { label: "Sous categorie", sortKey: "sousFamille" },
-    { label: "Type detaille", sortKey: "categorie" },
+    { label: "Famille", sortKey: "codeFamille" },
+    { label: "Sous-famille", sortKey: "sousFamille" },
     { label: "N serie", sortKey: "numeroSerie" },
     { label: "Designation", sortKey: "designation" },
+    { label: "Quantite", sortKey: "quantite" },
+    { label: "PU HT", sortKey: "puHt" },
+    { label: "PT HT", sortKey: "ptHt" },
+    { label: "TVA", sortKey: "tvaRate" },
+    { label: "PU TTC", sortKey: "puTtc" },
+    { label: "PT TTC", sortKey: "ptTtc" },
     { label: "Marque", sortKey: "marque" },
     { label: "Model", sortKey: "model" },
-    { label: "Statut", sortKey: "status" },
-    { label: "Niveau 1", sortKey: "niveau1" },
-    { label: "Niveau 2", sortKey: "niveau2" },
-    { label: "Niveau 3", sortKey: "niveau3" },
-    { label: "Localite", sortKey: "localite" },
-    { label: "Owner", sortKey: "activeFullName" },
+    { label: "Type amort.", sortKey: "typeAmortissement" },
+    { label: "Statut / action", sortKey: "status" },
+    { label: "Direction / Filiere", sortKey: "niveau1" },
+    { label: "Division / Departement", sortKey: "niveau2" },
+    { label: "Service / Unite", sortKey: "niveau3" },
+    { label: "Local", sortKey: "localite" },
+    { label: "Code local", sortKey: "codeLocale" },
+    { label: "Beneficiaire", sortKey: "activeFullName" },
     ...(editable ? [{ label: "Actions" }] : []),
   ];
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-[1280px] border-separate border-spacing-0 text-left text-sm">
+      <table className="min-w-[1880px] border-separate border-spacing-0 text-left text-sm">
         <thead className="sticky top-0 z-10 bg-slate-50 text-xs text-slate-500">
           <tr>
             {headers.map((head) => (
@@ -225,25 +247,50 @@ export function MaterialTable({
             </tr>
           ) : (
             materials.map((item) => (
-              <tr key={item.id} className="align-top even:bg-slate-50/60 hover:bg-teal-50/45">
-                <td className="border-b border-slate-100 px-4 py-5 font-semibold text-slate-950 tabular-nums">{item.codeBarre}</td>
-                <td className="border-b border-slate-100 px-4 py-5 font-medium text-slate-800">{item.codeFamille}</td>
-                <td className="border-b border-slate-100 px-4 py-5">{item.sousFamille ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-5">{item.categorie ?? "-"}</td>
+              <tr key={item.id} className="align-top even:bg-slate-50/60 hover:bg-iav-green-soft/70">
+                <td className="border-b border-slate-100 px-4 py-5 font-semibold text-slate-950 tabular-nums">
+                  <Link href={`/inventory/${item.id}`} className="rounded outline-none hover:text-iav-green focus-visible:ring-2 focus-visible:ring-iav-green">
+                    {getFullAssetCode(item)}
+                  </Link>
+                </td>
+                <td className="border-b border-slate-100 px-4 py-5 font-medium text-slate-800">{getCategoryLabel(settings, item.codeFamille)}</td>
+                <td className="border-b border-slate-100 px-4 py-5">{getSubCategoryLabel(settings, item.sousFamille)}</td>
                 <td className="border-b border-slate-100 px-4 py-5 font-mono text-xs leading-5">{item.numeroSerie ?? "-"}</td>
                 <td className="border-b border-slate-100 px-4 py-5">{item.designation ?? "-"}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{item.quantite ?? 1}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{formatCurrency(getPuHt(item))}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{formatCurrency(getPtHt(item))}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{formatPercent(item.tvaRate)}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{formatCurrency(getPuTtc(item))}</td>
+                <td className="border-b border-slate-100 px-4 py-5 tabular-nums">{formatCurrency(getPtTtc(item))}</td>
                 <td className="border-b border-slate-100 px-4 py-5">{item.marque ?? "-"}</td>
                 <td className="border-b border-slate-100 px-4 py-5">{item.model ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-5"><Badge status={item.status}>{statusLabel(item.status)}</Badge></td>
-                <td className="border-b border-slate-100 px-4 py-5">{item.niveau1 ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-5">{item.niveau2 ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-5">{item.niveau3 ?? "-"}</td>
+                <td className="border-b border-slate-100 px-4 py-5">{item.typeAmortissement ?? "-"}</td>
+                <td className="border-b border-slate-100 px-4 py-5">
+                  <div className="flex flex-col gap-2">
+                    <Badge status={item.status}>{statusLabel(item.status)}</Badge>
+                    <StatusChangeDialog material={item} settings={settings} />
+                  </div>
+                </td>
+                <td className="border-b border-slate-100 px-4 py-5">{getDirectionLabel(settings, item.niveau1)}</td>
+                <td className="border-b border-slate-100 px-4 py-5">{getDepartmentLabel(settings, item.niveau2)}</td>
+                <td className="border-b border-slate-100 px-4 py-5">{getServiceLabel(settings, item.niveau3)}</td>
                 <td className="border-b border-slate-100 px-4 py-5">{item.localite ?? "-"}</td>
+                <td className="border-b border-slate-100 px-4 py-5">{item.codeLocale ?? "-"}</td>
                 <td className="border-b border-slate-100 px-4 py-5">{item.activeFullName ?? "-"}</td>
                 {editable ? (
                   <td className="border-b border-slate-100 px-4 py-5">
                     <div className="flex items-center gap-2">
                       <MaterialEditDialog title={`Modifier ${item.codeBarre}`}>
+                        <div className="mb-5 flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-950">Action statut</h3>
+                            <p className="mt-1 text-xs leading-5 text-slate-500">
+                              Affecter, muter ou reformer ce materiel depuis l&apos;inventaire.
+                            </p>
+                          </div>
+                          <StatusChangeDialog material={item} settings={settings} />
+                        </div>
                         <AdminMaterialForm material={item} settings={settings} />
                       </MaterialEditDialog>
                       <MaterialDeleteButton materialId={item.id} codeBarre={item.codeBarre} />
@@ -267,19 +314,23 @@ function AdminMaterialForm({ material, settings }: { material: Material; setting
         <h3 className="text-sm font-semibold text-slate-950">Codes</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field name="codeBarre" label="Code barre" type="number" defaultValue={material.codeBarre} required />
-          <Field name="codeFamille" label="Code famille" defaultValue={material.codeFamille} required />
+          <SelectField name="codeFamille" label="Famille" values={categoryOptions(settings)} defaultValue={material.codeFamille} />
           <Field name="numeroSerie" label="N serie" defaultValue={material.numeroSerie ?? ""} />
         </div>
       </section>
       <section>
         <h3 className="text-sm font-semibold text-slate-950">Classification</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Field name="sousFamille" label="Sous categorie" defaultValue={material.sousFamille ?? ""} />
-          <Field name="categorie" label="Type detaille" defaultValue={material.categorie ?? ""} />
+          <SelectField name="sousFamille" label="Sous-famille" values={subCategoryOptions(settings)} defaultValue={material.sousFamille} />
           <Field name="designation" label="Designation" defaultValue={material.designation ?? ""} />
           <Field name="marque" label="Marque" defaultValue={material.marque ?? ""} />
           <Field name="model" label="Model" defaultValue={material.model ?? ""} />
-          <Field name="valeurBase" label="Valeur base" type="number" step="0.01" defaultValue={material.valeurBase ?? ""} />
+          <Field name="quantite" label="Quantite" type="number" min={1} defaultValue={material.quantite ?? 1} readOnly />
+          <Field name="puHt" label="PU HT (MAD)" type="number" step="0.01" defaultValue={getPuHt(material) ?? ""} />
+          <Field name="ptHt" label="PT HT (MAD)" type="number" step="0.01" defaultValue={getPtHt(material) ?? ""} />
+          <Field name="tvaRate" label="TVA (%)" type="number" step="0.01" defaultValue={material.tvaRate ?? 20} />
+          <Field name="puTtc" label="PU TTC (MAD)" type="number" step="0.01" defaultValue={getPuTtc(material) ?? ""} />
+          <Field name="ptTtc" label="PT TTC (MAD)" type="number" step="0.01" defaultValue={getPtTtc(material) ?? ""} />
           <Field name="dateEntree" label="Date entree" type="date" defaultValue={toDateInput(material.dateEntree)} />
           <Field name="duree" label="Duree" type="number" defaultValue={material.duree ?? ""} />
           <Field name="taux" label="Taux" type="number" step="0.01" defaultValue={material.taux ?? ""} />
@@ -291,18 +342,20 @@ function AdminMaterialForm({ material, settings }: { material: Material; setting
       <section>
         <h3 className="text-sm font-semibold text-slate-950">Affectation</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <SelectField name="niveau1" label="Niveau 1" values={settings.niveau1} defaultValue={material.niveau1} />
-          <SelectField name="niveau2" label="Niveau 2" values={settings.niveau2.map((item) => item.name)} defaultValue={material.niveau2} />
-          <SelectField name="niveau3" label="Niveau 3" values={settings.niveau3.map((item) => item.name)} defaultValue={material.niveau3} />
-          <Field name="localite" label="Localite" defaultValue={material.localite ?? ""} />
-          <Field name="codeLocale" label="Code locale" defaultValue={material.codeLocale ?? ""} />
+          <SelectField name="niveau1" label="Direction / Filiere" values={directionOptions(settings)} defaultValue={material.niveau1} />
+          <SelectField name="niveau2" label="Division / Departement" values={departmentOptions(settings)} defaultValue={material.niveau2} />
+          <SelectField name="niveau3" label="Service / Unite" values={serviceOptions(settings)} defaultValue={material.niveau3} />
+          <Field name="localite" label="Local" defaultValue={material.localite ?? ""} />
+          <Field name="codeLocale" label="Code local" defaultValue={material.codeLocale ?? ""} />
           <Field name="accuseReception" label="Accuse de reception" defaultValue={material.accuseReception ?? ""} />
           <Field name="marBc" label="MAR / BC" defaultValue={material.marBc ?? ""} />
           <Field name="facNumero" label="FAC N" defaultValue={material.facNumero ?? ""} />
         </div>
       </section>
-      <div className="flex justify-end border-t border-slate-100 pt-4">
+      <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+        <DialogCloseButton />
         <button className={buttonStyles()}>
+          <Check size={17} />
           Enregistrer
         </button>
       </div>
@@ -312,6 +365,58 @@ function AdminMaterialForm({ material, settings }: { material: Material; setting
 
 function toDateInput(value?: string) {
   return value ? new Date(value).toISOString().slice(0, 10) : "";
+}
+
+function formatCurrency(value?: number) {
+  return typeof value === "number"
+    ? new Intl.NumberFormat("fr-MA", { currency: "MAD", maximumFractionDigits: 2, minimumFractionDigits: 2, style: "currency" }).format(value)
+    : "-";
+}
+
+function formatPercent(value?: number) {
+  return typeof value === "number" ? `${new Intl.NumberFormat("fr-MA", { maximumFractionDigits: 2 }).format(value)} %` : "-";
+}
+
+function getPuHt(material: Material) {
+  return material.puHt ?? material.prixUnitaire ?? material.valeurBase;
+}
+
+function getPuTtc(material: Material) {
+  const puHt = getPuHt(material);
+  return material.puTtc ?? (typeof puHt === "number" ? puHt * (1 + (material.tvaRate ?? 20) / 100) : undefined);
+}
+
+function getPtHt(material: Material) {
+  const quantity = material.quantite || 1;
+  const puHt = getPuHt(material);
+  return material.ptHt ?? material.prixHt ?? (typeof puHt === "number" ? puHt * quantity : undefined);
+}
+
+function getPtTtc(material: Material) {
+  const ptHt = getPtHt(material);
+  return material.ptTtc ?? material.prixTtc ?? (typeof ptHt === "number" ? ptHt * (1 + (material.tvaRate ?? 20) / 100) : undefined);
+}
+
+function directionOptions(settings: InventorySettings) {
+  return settings.niveau1.map((item) => ({ value: item.code, label: getDirectionLabel(settings, item.code) }));
+}
+
+function departmentOptions(settings: InventorySettings) {
+  return settings.niveau2.map((item) => ({ value: item.code, label: getDepartmentLabel(settings, item.code) }));
+}
+
+function serviceOptions(settings: InventorySettings) {
+  return settings.niveau3.map((item) => ({ value: item.code, label: getServiceLabel(settings, item.code) }));
+}
+
+function categoryOptions(settings: InventorySettings) {
+  return settings.familles.map((item) => ({ value: item.code, label: getCategoryLabel(settings, item.code) }));
+}
+
+function subCategoryOptions(settings: InventorySettings) {
+  return settings.familles
+    .flatMap((famille) => famille.sousFamilles)
+    .map((item) => ({ value: item.code, label: getSubCategoryLabel(settings, item.code) }));
 }
 
 export function Pagination({
@@ -371,7 +476,7 @@ export function MovementList({ movements }: { movements: Movement[] }) {
             <div>
               <p className="text-sm font-semibold">Code barre {movement.codeBarre}</p>
               <p className="text-xs leading-5 text-slate-500">
-                Code famille {movement.codeFamille} / N serie {movement.numeroSerie ?? "sans serie"}
+                Famille {movement.codeFamille} / N serie {movement.numeroSerie ?? "sans serie"}
               </p>
             </div>
             <p className="text-sm text-slate-600">{movement.fullName ?? "-"}</p>
@@ -385,14 +490,20 @@ export function MovementList({ movements }: { movements: Movement[] }) {
 
 export function MovementTable({
   movements,
+  settings,
   showType = false,
+  showFullName = true,
+  showDecisionColumns = true,
   basePath,
   query,
   sort,
   direction,
 }: {
   movements: Movement[];
+  settings: InventorySettings;
   showType?: boolean;
+  showFullName?: boolean;
+  showDecisionColumns?: boolean;
   basePath: string;
   query?: string;
   sort: string;
@@ -402,15 +513,14 @@ export function MovementTable({
     ...(showType ? [{ label: "Operation", sortKey: "type" }] : []),
     { label: "Date", sortKey: "movementDate" },
     { label: "Code barre", sortKey: "codeBarre" },
-    { label: "Code famille", sortKey: "codeFamille" },
+    { label: "Famille", sortKey: "codeFamille" },
     { label: "N serie", sortKey: "numeroSerie" },
-    { label: "Nom complet", sortKey: "fullName" },
-    { label: "Niveau 1", sortKey: "niveau1" },
-    { label: "Niveau 2", sortKey: "niveau2" },
-    { label: "Niveau 3", sortKey: "niveau3" },
+    ...(showFullName ? [{ label: "Nom complet", sortKey: "fullName" }] : []),
+    { label: "Direction / Filiere", sortKey: "niveau1" },
+    { label: "Division / Departement", sortKey: "niveau2" },
+    { label: "Service / Unite", sortKey: "niveau3" },
     { label: "Local", sortKey: "localite" },
-    { label: "N decision", sortKey: "decisionNum" },
-    { label: "N marche", sortKey: "marcheNum" },
+    ...(showDecisionColumns ? [{ label: "N decision", sortKey: "decisionNum" }, { label: "N marche", sortKey: "marcheNum" }] : []),
   ];
 
   return (
@@ -432,21 +542,25 @@ export function MovementTable({
             </tr>
           ) : (
             movements.map((movement) => (
-              <tr key={movement.id} className="align-top even:bg-slate-50/60 hover:bg-teal-50/45">
+              <tr key={movement.id} className="align-top even:bg-slate-50/60 hover:bg-iav-green-soft/70">
                 {showType ? (
                   <td className="border-b border-slate-100 px-4 py-4 font-semibold text-slate-900">{movementLabel(movement.type)}</td>
                 ) : null}
                 <td className="border-b border-slate-100 px-4 py-4">{formatDate(movement.movementDate)}</td>
-                <td className="border-b border-slate-100 px-4 py-4 font-semibold text-slate-950 tabular-nums">{movement.codeBarre}</td>
-                <td className="border-b border-slate-100 px-4 py-4 font-medium text-slate-800">{movement.codeFamille}</td>
+                <td className="border-b border-slate-100 px-4 py-4 font-semibold text-slate-950 tabular-nums">{getFullAssetCode(movement)}</td>
+                <td className="border-b border-slate-100 px-4 py-4 font-medium text-slate-800">{getCategoryLabel(settings, movement.codeFamille)}</td>
                 <td className="border-b border-slate-100 px-4 py-4 font-mono text-xs">{movement.numeroSerie ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.fullName ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.niveau1 ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.niveau2 ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.niveau3 ?? "-"}</td>
+                {showFullName ? <td className="border-b border-slate-100 px-4 py-4">{movement.fullName ?? "-"}</td> : null}
+                <td className="border-b border-slate-100 px-4 py-4">{getDirectionLabel(settings, movement.niveau1)}</td>
+                <td className="border-b border-slate-100 px-4 py-4">{getDepartmentLabel(settings, movement.niveau2)}</td>
+                <td className="border-b border-slate-100 px-4 py-4">{getServiceLabel(settings, movement.niveau3)}</td>
                 <td className="border-b border-slate-100 px-4 py-4">{movement.localite ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.decisionNum ?? "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{movement.marcheNum ?? "-"}</td>
+                {showDecisionColumns ? (
+                  <>
+                    <td className="border-b border-slate-100 px-4 py-4">{movement.decisionNum ?? "-"}</td>
+                    <td className="border-b border-slate-100 px-4 py-4">{movement.marcheNum ?? "-"}</td>
+                  </>
+                ) : null}
               </tr>
             ))
           )}
@@ -495,7 +609,7 @@ function SortableHeader({
       {column.sortKey ? (
         <Link
           href={createSortHref(basePath, query, column.sortKey, isActive && direction === "asc" ? "desc" : "asc")}
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded outline-none hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-teal-700"
+          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded outline-none hover:text-iav-green focus-visible:ring-2 focus-visible:ring-iav-green"
         >
           {column.label}
           {isActive ? direction === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} /> : <ArrowUpDown size={14} className="text-slate-300" />}

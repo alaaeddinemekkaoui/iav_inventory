@@ -32,7 +32,7 @@ export default function RootLayout({
 
   return (
     <html lang="fr" className={cn(geistSans.variable, geistMono.variable, "h-full antialiased")}>
-      <body className="min-h-full bg-[#f4f6f3] text-slate-950">
+      <body className="min-h-full bg-iav-background text-slate-950">
         <Shell userPromise={userPromise} flashPromise={flashPromise}>{children}</Shell>
       </body>
     </html>

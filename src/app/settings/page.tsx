@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Check, DatabaseBackup, Download, HardDriveDownload, Layers3, Pencil, Tags, Trash2, X } from "lucide-react";
+import { Check, DatabaseBackup, Download, HardDriveDownload, Layers3, Pencil, Share2, Tags, Trash2, X } from "lucide-react";
 import { addSettingItem, createManualBackup, deleteSettingItem, editSettingItem } from "@/app/actions";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { Content, Field, PageHeader } from "@/components/inventory-ui";
+import { LanShareSettings } from "@/components/lan-share-settings";
 import { requireRole } from "@/lib/auth";
 import { listInventoryBackups, type BackupInfo } from "@/lib/backups";
 import { FamilleSetting, readInventory } from "@/lib/store";
@@ -25,9 +26,9 @@ export default async function SettingsPage({
 
   return (
     <main>
-      <PageHeader
+        <PageHeader
         title="Parametres"
-        description="Configurer les niveaux organisationnels, categories, sous-categories et types detailles."
+        description="Configurer l'organisation, les familles, les sous-familles, la TVA et la sequence des codes."
       />
 
       <Content>
@@ -62,13 +63,13 @@ export default async function SettingsPage({
 
           <SettingsSection
             icon={<Layers3 size={18} />}
-            title="Niveaux organisationnels"
-            hint="Niveau 2 depend de Niveau 1. Niveau 3 depend de Niveau 1 et Niveau 2."
+            title="Structure organisationnelle"
+            hint="Direction / Filiere -> Division / Departement -> Service / Unite. Une unite peut aussi etre rattachee directement a une Direction / Filiere."
             action={
               <div className="flex flex-wrap gap-2">
                 <EditModeLink editMode={editMode} />
-                <SettingsDialog label="Creer niveau" title="Creer un niveau">
-                  <NiveauForms niveau1={settings.niveau1} niveau2={settings.niveau2.map((item) => item.name)} />
+                <SettingsDialog label="Creer element" title="Creer un element organisationnel">
+                  <NiveauForms niveau1={settings.niveau1} niveau2={settings.niveau2} />
                 </SettingsDialog>
               </div>
             }
@@ -83,15 +84,33 @@ export default async function SettingsPage({
 
           <SettingsSection
             icon={<Tags size={18} />}
-            title="Categories"
-            hint="Categorie -> sous-categorie -> type detaille. Ces valeurs sont proposees dans le formulaire d'inventaire."
+            title="Familles"
+            hint="Famille -> sous-famille. Chaque famille porte une TVA appliquee automatiquement aux nouveaux articles."
             action={
-              <SettingsDialog label="Ajouter categorie" title="Ajouter categorie / sous-categorie / type">
+              <SettingsDialog label="Ajouter famille" title="Ajouter famille / sous-famille">
                 <CategoryForms familles={settings.familles} />
               </SettingsDialog>
             }
           >
             <CategoryTable familles={settings.familles} editMode={editMode} />
+          </SettingsSection>
+
+          <SettingsSection
+            icon={<Pencil size={18} />}
+            title="Sequence des codes"
+            hint="Numero de depart utilise pour les prochains codes complets."
+            action={null}
+          >
+            <SerialSettingsForm startingSerialNumber={settings.startingSerialNumber} />
+          </SettingsSection>
+
+          <SettingsSection
+            icon={<Share2 size={18} />}
+            title="Partage web app"
+            hint="Lien LAN genere depuis la connexion internet active de ce poste."
+            action={null}
+          >
+            <LanShareSettings />
           </SettingsSection>
         </div>
       </Content>
@@ -121,7 +140,7 @@ function BackupTable({ backups }: { backups: BackupInfo[] }) {
             </tr>
           ) : (
             backups.map((backup) => (
-              <tr key={backup.name} className="even:bg-slate-50/60 hover:bg-teal-50/45">
+              <tr key={backup.name} className="even:bg-slate-50/60 hover:bg-iav-green-soft/70">
                 <td className="max-w-[360px] truncate border-b border-slate-100 px-4 py-4 font-medium text-slate-900">
                   {backup.name}
                 </td>
@@ -197,35 +216,37 @@ function NiveauTable({
   niveau3,
   editMode,
 }: {
-  niveau1: string[];
-  niveau2: Array<{ name: string; parent1: string }>;
-  niveau3: Array<{ name: string; parent1: string; parent2: string }>;
+  niveau1: Array<{ code: string; name: string }>;
+  niveau2: Array<{ code: string; name: string; parent1: string }>;
+  niveau3: Array<{ code: string; name: string; parent1: string; parent2?: string }>;
   editMode: boolean;
 }) {
   return (
     <div className="grid gap-4 bg-slate-50 p-4 xl:grid-cols-3">
-      <NiveauList title="Niveau 1" hint="Directions principales." empty={niveau1.length === 0}>
-        {niveau1.map((value) => (
-          <NiveauRow key={value} kind="niveau1" value={value} editMode={editMode} />
+      <NiveauList title="Direction / Filiere" hint="Niveau organisationnel principal." empty={niveau1.length === 0}>
+        {niveau1.map((item) => (
+          <NiveauRow key={item.code} kind="niveau1" value={item.code} name={item.name} editMode={editMode} />
         ))}
       </NiveauList>
-      <NiveauList title="Niveau 2" hint="Divisions rattachees au Niveau 1." empty={niveau2.length === 0}>
+      <NiveauList title="Division / Departement" hint="Rattache a une Direction / Filiere." empty={niveau2.length === 0}>
         {niveau2.map((item) => (
           <NiveauRow
-            key={`${item.parent1}-${item.name}`}
+            key={`${item.parent1}-${item.code}`}
             kind="niveau2"
-            value={item.name}
+            value={item.code}
+            name={item.name}
             parent1={item.parent1}
             editMode={editMode}
           />
         ))}
       </NiveauList>
-      <NiveauList title="Niveau 3" hint="Services rattaches aux Niveaux 1 et 2." empty={niveau3.length === 0}>
+      <NiveauList title="Service / Unite" hint="Rattache a une Division / Departement ou directement a une Direction / Filiere." empty={niveau3.length === 0}>
         {niveau3.map((item) => (
           <NiveauRow
-            key={`${item.parent1}-${item.parent2}-${item.name}`}
+            key={`${item.parent1}-${item.parent2 ?? "direct"}-${item.code}`}
             kind="niveau3"
-            value={item.name}
+            value={item.code}
+            name={item.name}
             parent1={item.parent1}
             parent2={item.parent2}
             editMode={editMode}
@@ -275,17 +296,19 @@ function NiveauList({
 function NiveauRow({
   kind,
   value,
+  name,
   parent1,
   parent2,
   editMode,
 }: {
   kind: "niveau1" | "niveau2" | "niveau3";
   value: string;
+  name: string;
   parent1?: string;
   parent2?: string;
   editMode: boolean;
 }) {
-  const parentLabel = [parent1, parent2].filter(Boolean).join(" / ");
+  const parentLabel = [parent1, parent2 || "Direct"].filter(Boolean).join(" / ");
 
   return (
     <div className="flex items-center gap-2 px-4 py-3">
@@ -297,9 +320,18 @@ function NiveauRow({
           {parent2 ? <input type="hidden" name="parent2" value={parent2} /> : null}
           <input
             name="value"
+            inputMode="numeric"
+            pattern="[0-9]*"
             defaultValue={value}
             required
-            aria-label={`Modifier ${value}`}
+            aria-label={`Modifier code ${value}`}
+            className={cn(fieldStyles, "h-9 w-24 px-2")}
+          />
+          <input
+            name="name"
+            defaultValue={name}
+            required
+            aria-label={`Modifier nom ${name}`}
             className={cn(fieldStyles, "h-9 flex-1 px-2")}
           />
           <button
@@ -312,7 +344,7 @@ function NiveauRow({
         </form>
       ) : (
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-slate-900">{value}</p>
+          <p className="truncate text-sm font-medium text-slate-900">{name} <span className="text-slate-500">({value})</span></p>
           {parentLabel ? <p className="mt-1 truncate text-xs text-slate-500">{parentLabel}</p> : null}
         </div>
       )}
@@ -326,20 +358,16 @@ function NiveauRow({
 function CategoryTable({ familles, editMode }: { familles: FamilleSetting[]; editMode: boolean }) {
   const rows = familles.flatMap((famille) => {
     if (famille.sousFamilles.length === 0) {
-      return [{ category: famille.code, sub: "", type: "" }];
+      return [{ category: famille.code, categoryName: famille.name, tvaRate: famille.tvaRate, sub: "", subName: "" }];
     }
 
-    return famille.sousFamilles.flatMap((sousFamille) => {
-      if (sousFamille.categories.length === 0) {
-        return [{ category: famille.code, sub: sousFamille.name, type: "" }];
-      }
-
-      return sousFamille.categories.map((type) => ({
-        category: famille.code,
-        sub: sousFamille.name,
-        type,
-      }));
-    });
+    return famille.sousFamilles.map((sousFamille) => ({
+      category: famille.code,
+      categoryName: famille.name,
+      tvaRate: famille.tvaRate,
+      sub: sousFamille.code,
+      subName: sousFamille.name,
+    }));
   });
 
   return (
@@ -347,29 +375,44 @@ function CategoryTable({ familles, editMode }: { familles: FamilleSetting[]; edi
       <table className="min-w-[900px] border-separate border-spacing-0 text-left text-sm">
         <thead className="bg-slate-50 text-xs text-slate-500">
           <tr>
-            <th className="border-b border-slate-200 px-4 py-4 font-semibold">Categorie</th>
-            <th className="border-b border-slate-200 px-4 py-4 font-semibold">Sous categorie</th>
-            <th className="border-b border-slate-200 px-4 py-4 font-semibold">Type detaille</th>
+            <th className="border-b border-slate-200 px-4 py-4 font-semibold">Famille</th>
+            <th className="border-b border-slate-200 px-4 py-4 font-semibold">TVA</th>
+            <th className="border-b border-slate-200 px-4 py-4 font-semibold">Sous-famille</th>
             {editMode ? <th className="border-b border-slate-200 px-4 py-4 font-semibold">Actions</th> : null}
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={editMode ? 4 : 3} className="px-4 py-10 text-center text-sm text-slate-500">Aucune categorie.</td>
+              <td colSpan={editMode ? 4 : 3} className="px-4 py-10 text-center text-sm text-slate-500">Aucune famille.</td>
             </tr>
           ) : (
             rows.map((row, index) => (
-              <tr key={`${row.category}-${row.sub}-${row.type}-${index}`} className="even:bg-slate-50/60 hover:bg-teal-50/45">
-                <td className="border-b border-slate-100 px-4 py-4 font-medium text-slate-900">{row.category}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{row.sub || "-"}</td>
-                <td className="border-b border-slate-100 px-4 py-4">{row.type || "-"}</td>
+              <tr key={`${row.category}-${row.sub}-${index}`} className="even:bg-slate-50/60 hover:bg-iav-green-soft/70">
+                <td className="border-b border-slate-100 px-4 py-4 font-medium text-slate-900">
+                  {editMode ? (
+                    <CategoryEditForm kind="famille" value={row.category} name={row.categoryName} tvaRate={row.tvaRate} />
+                  ) : (
+                    <>
+                      {row.categoryName} <span className="text-slate-500">({row.category})</span>
+                    </>
+                  )}
+                </td>
+                <td className="border-b border-slate-100 px-4 py-4 tabular-nums">{row.tvaRate ?? 20} %</td>
+                <td className="border-b border-slate-100 px-4 py-4">
+                  {editMode && row.sub ? (
+                    <CategoryEditForm kind="sousFamille" value={row.sub} name={row.subName} parent={row.category} />
+                  ) : row.sub ? (
+                    `${row.subName} (${row.sub})`
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 {editMode ? (
                   <td className="border-b border-slate-100 px-4 py-4">
                     <div className="flex flex-wrap gap-2">
-                      <IconDelete kind="famille" value={row.category} title="Supprimer categorie" />
-                      {row.sub ? <IconDelete kind="sousFamille" value={row.sub} parent={row.category} title="Supprimer sous-categorie" /> : null}
-                      {row.type ? <IconDelete kind="categorie" value={row.type} parent={row.category} parent2={row.sub} title="Supprimer type" /> : null}
+                      <IconDelete kind="famille" value={row.category} title="Supprimer famille" />
+                      {row.sub ? <IconDelete kind="sousFamille" value={row.sub} parent={row.category} title="Supprimer sous-famille" /> : null}
                     </div>
                   </td>
                 ) : null}
@@ -382,31 +425,84 @@ function CategoryTable({ familles, editMode }: { familles: FamilleSetting[]; edi
   );
 }
 
-function NiveauForms({ niveau1, niveau2 }: { niveau1: string[]; niveau2: string[] }) {
+function CategoryEditForm({
+  kind,
+  value,
+  name,
+  parent,
+  tvaRate,
+}: {
+  kind: "famille" | "sousFamille";
+  value: string;
+  name: string;
+  parent?: string;
+  tvaRate?: number;
+}) {
+  return (
+    <form action={editSettingItem} className="flex min-w-[280px] items-center gap-2">
+      <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="previousValue" value={value} />
+      {parent ? <input type="hidden" name="parent1" value={parent} /> : null}
+      <input
+        name="value"
+        defaultValue={value}
+        required
+        aria-label={`Modifier code ${value}`}
+        className={cn(fieldStyles, "h-9 w-24 px-2")}
+      />
+      <input
+        name="name"
+        defaultValue={name}
+        required
+        aria-label={`Modifier nom ${name}`}
+        className={cn(fieldStyles, "h-9 min-w-0 flex-1 px-2")}
+      />
+      {kind === "famille" ? (
+        <input
+          name="tvaRate"
+          type="number"
+          step="0.01"
+          min={0}
+          defaultValue={tvaRate ?? 20}
+          aria-label={`Modifier TVA ${value}`}
+          className={cn(fieldStyles, "h-9 w-24 px-2")}
+        />
+      ) : null}
+      <button title="Enregistrer" aria-label={`Enregistrer ${value}`} className={buttonStyles({ size: "icon-sm" })}>
+        <Check size={15} />
+      </button>
+    </form>
+  );
+}
+
+function NiveauForms({ niveau1, niveau2 }: { niveau1: Array<{ code: string; name: string }>; niveau2: Array<{ code: string; name: string; parent1: string }> }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      <FormBlock title="Niveau 1" hint="Direction principale.">
+      <FormBlock title="Direction / Filiere" hint="Niveau organisationnel principal.">
         <form action={addSettingItem} className="grid gap-3">
           <input type="hidden" name="kind" value="niveau1" />
-          <Field name="value" label="Nom" placeholder="DG" required />
-          <SubmitButton dark>Ajouter Niveau 1</SubmitButton>
+          <Field name="value" label="Code" inputMode="numeric" pattern="[0-9]*" placeholder="100" required />
+          <Field name="name" label="Nom" placeholder="Direction Informatique" required />
+          <SubmitButton dark>Ajouter Direction / Filiere</SubmitButton>
         </form>
       </FormBlock>
-      <FormBlock title="Niveau 2" hint="Rattache a un Niveau 1.">
+      <FormBlock title="Division / Departement" hint="Rattache a une Direction / Filiere.">
         <form action={addSettingItem} className="grid gap-3">
           <input type="hidden" name="kind" value="niveau2" />
-          <Select name="parent1" label="Niveau 1" values={niveau1} />
-          <Field name="value" label="Nom" placeholder="Division RH" required />
-          <SubmitButton>Ajouter Niveau 2</SubmitButton>
+          <Select name="parent1" label="Direction / Filiere" values={niveau1.map((item) => ({ value: item.code, label: `${item.name} (${item.code})` }))} />
+          <Field name="value" label="Code" inputMode="numeric" pattern="[0-9]*" placeholder="110" required />
+          <Field name="name" label="Nom" placeholder="Departement Infrastructure" required />
+          <SubmitButton>Ajouter Division / Departement</SubmitButton>
         </form>
       </FormBlock>
-      <FormBlock title="Niveau 3" hint="Rattache a Niveau 1 + 2.">
+      <FormBlock title="Service / Unite" hint="Rattache a une Division / Departement, ou directement a une Direction / Filiere.">
         <form action={addSettingItem} className="grid gap-3">
           <input type="hidden" name="kind" value="niveau3" />
-          <Select name="parent1" label="Niveau 1" values={niveau1} />
-          <Select name="parent2" label="Niveau 2" values={niveau2} />
-          <Field name="value" label="Nom" placeholder="Service RH" required />
-          <SubmitButton>Ajouter Niveau 3</SubmitButton>
+          <Select name="parent1" label="Direction / Filiere" values={niveau1.map((item) => ({ value: item.code, label: `${item.name} (${item.code})` }))} />
+          <Select name="parent2" label="Division / Departement (optionnel)" values={niveau2.map((item) => ({ value: item.code, label: `${item.name} (${item.code})` }))} required={false} />
+          <Field name="value" label="Code" inputMode="numeric" pattern="[0-9]*" placeholder="111" required />
+          <Field name="name" label="Nom" placeholder="Service Reseaux" required />
+          <SubmitButton>Ajouter Service / Unite</SubmitButton>
         </form>
       </FormBlock>
     </div>
@@ -414,32 +510,24 @@ function NiveauForms({ niveau1, niveau2 }: { niveau1: string[]; niveau2: string[
 }
 
 function CategoryForms({ familles }: { familles: FamilleSetting[] }) {
-  const sousFamilles = familles.flatMap((famille) => famille.sousFamilles.map((item) => item.name));
-
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <FormBlock title="Categorie" hint="Ancien code famille.">
+    <div className="grid gap-4 lg:grid-cols-2">
+      <FormBlock title="Famille" hint="Famille principale avec code unique et TVA par defaut.">
         <form action={addSettingItem} className="grid gap-3">
           <input type="hidden" name="kind" value="famille" />
-          <Field name="value" label="Nom" placeholder="INF-PC" required />
-          <SubmitButton>Ajouter categorie</SubmitButton>
+          <Field name="value" label="Code" placeholder="INF-PC" required />
+          <Field name="name" label="Nom" placeholder="Informatique" required />
+          <Field name="tvaRate" label="TVA (%)" type="number" step="0.01" min={0} defaultValue={20} />
+          <SubmitButton>Ajouter famille</SubmitButton>
         </form>
       </FormBlock>
-      <FormBlock title="Sous-categorie" hint="Rattachee a une categorie.">
+      <FormBlock title="Sous-famille" hint="Rattachee a une famille.">
         <form action={addSettingItem} className="grid gap-3">
           <input type="hidden" name="kind" value="sousFamille" />
-          <Select name="parent" label="Categorie" values={familles.map((item) => item.code)} />
-          <Field name="value" label="Nom" placeholder="Laptop" required />
-          <SubmitButton>Ajouter sous-categorie</SubmitButton>
-        </form>
-      </FormBlock>
-      <FormBlock title="Type detaille" hint="Rattache a categorie + sous-categorie.">
-        <form action={addSettingItem} className="grid gap-3">
-          <input type="hidden" name="kind" value="categorie" />
-          <Select name="parent" label="Categorie" values={familles.map((item) => item.code)} />
-          <Select name="parent2" label="Sous categorie" values={sousFamilles} />
-          <Field name="value" label="Nom" placeholder="Portable" required />
-          <SubmitButton dark>Ajouter type detaille</SubmitButton>
+          <Select name="parent" label="Famille" values={familles.map((item) => ({ value: item.code, label: `${item.name} (${item.code})` }))} />
+          <Field name="value" label="Code" placeholder="LAPTOP" required />
+          <Field name="name" label="Nom" placeholder="Laptop" required />
+          <SubmitButton>Ajouter sous-famille</SubmitButton>
         </form>
       </FormBlock>
     </div>
@@ -464,15 +552,40 @@ function FormBlock({
   );
 }
 
-function Select({ name, label, values }: { name: string; label: string; values: string[] }) {
+function SerialSettingsForm({ startingSerialNumber }: { startingSerialNumber: number }) {
+  return (
+    <form action={addSettingItem} className="flex flex-col gap-3 bg-slate-50 p-4 sm:flex-row sm:items-end">
+      <input type="hidden" name="kind" value="serialStart" />
+      <Field name="value" label="Starting Serial Number" type="number" min={1} defaultValue={startingSerialNumber} required />
+      <button className={buttonStyles()}>
+        Enregistrer
+      </button>
+    </form>
+  );
+}
+
+function Select({
+  name,
+  label,
+  values,
+  required = true,
+}: {
+  name: string;
+  label: string;
+  values: Array<string | { value: string; label: string }>;
+  required?: boolean;
+}) {
   return (
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-slate-700">{label}</span>
-      <select name={name} required className={cn(fieldStyles, "h-10")}>
+      <select name={name} required={required} className={cn(fieldStyles, "h-10")}>
         <option value="">Choisir</option>
-        {values.map((value) => (
-          <option key={value} value={value}>{value}</option>
-        ))}
+        {values.map((option) => {
+          const value = typeof option === "string" ? option : option.value;
+          const optionLabel = typeof option === "string" ? option : option.label;
+
+          return <option key={`${value}-${optionLabel}`} value={value}>{optionLabel}</option>;
+        })}
       </select>
     </label>
   );
@@ -512,7 +625,7 @@ function IconDelete({
         title={`${title} ?`}
         description={`Cette action supprime definitivement "${value}" des parametres de l'inventaire.`}
         triggerLabel={`${title}: ${value}`}
-        trigger={<span className={buttonStyles({ variant: "ghost", size: "icon-sm", className: "text-slate-400 hover:text-rose-700" })}><Trash2 size={14} /></span>}
+        trigger={<span className={buttonStyles({ variant: "ghost", size: "icon-sm", className: "text-slate-400 hover:text-iav-red" })}><Trash2 size={14} /></span>}
       />
     </form>
   );

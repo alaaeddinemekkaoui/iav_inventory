@@ -32,21 +32,21 @@ export default async function SuperAdminItPage() {
           <Panel title="Vue technique" icon={<ShieldCheck size={18} />} aside="Non affiche aux utilisateurs">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <Stat icon={<Boxes size={18} />} label="Materiels" value={materials.length} detail="Total inventaire" />
-              <Stat icon={<ShieldCheck size={18} />} label="Disponibles" value={stock} detail="En stock" />
+              <Stat icon={<ShieldCheck size={18} />} label="En inventaire" value={stock} detail="Non affectes" />
               <Stat icon={<UserCog size={18} />} label="Affectes" value={assigned} detail="Dispatch, mutation, decharge" />
-              <Stat icon={<Settings size={18} />} label="Niveaux" value={niveaux} detail="N1 + N2 + N3" />
-              <Stat icon={<Database size={18} />} label="Familles" value={families} detail="Categories racines" />
+              <Stat icon={<Settings size={18} />} label="Organisation" value={niveaux} detail="Directions, departements, services" />
+              <Stat icon={<Database size={18} />} label="Familles" value={families} detail="Familles racines" />
             </div>
           </Panel>
 
           <Panel title="Maintenance" icon={<Database size={18} />} aside={lastUpdate ? `Derniere maj ${new Date(lastUpdate).toLocaleDateString("fr-MA")}` : "Aucune donnee"}>
             <div className="grid gap-3 md:grid-cols-3">
               <AdminLink href="/inventory?edit=1" icon={<UserCog size={18} />} label="Inventaire" detail="Modifier ou supprimer les materiels" />
-              <AdminLink href="/settings" icon={<Settings size={18} />} label="Parametres" detail="Niveaux, categories et types" />
+              <AdminLink href="/settings" icon={<Settings size={18} />} label="Parametres" detail="Organisation, familles et sequence" />
               <AdminLink href="/users" icon={<Users size={18} />} label="Utilisateurs" detail="Creer les comptes" />
               <AdminLink href="/history" icon={<FileClock size={18} />} label="Historique" detail={`${data.movements.length} mouvements`} />
             </div>
-            <p className="mt-4 rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-sm leading-6 text-teal-900">
+            <p className="mt-4 rounded-md border border-iav-green/25 bg-iav-green-soft px-3 py-2 text-sm leading-6 text-iav-green">
               Cette page est protegee par l authentification locale et limitee au role Super Admin IT.
             </p>
           </Panel>
@@ -68,8 +68,8 @@ function AdminLink({
   detail: string;
 }) {
   return (
-    <Link href={href} className="flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-[#f8faf8] px-4 py-3 outline-none hover:border-teal-200 hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-teal-700">
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-teal-700 shadow-sm">{icon}</span>
+    <Link href={href} className="flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-iav-cream px-4 py-3 outline-none hover:border-iav-green/25 hover:bg-iav-green-soft focus-visible:ring-2 focus-visible:ring-iav-green">
+      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-iav-green shadow-sm">{icon}</span>
       <span>
         <span className="block text-sm font-semibold text-slate-950">{label}</span>
         <span className="mt-1 block text-xs leading-5 text-slate-500">{detail}</span>

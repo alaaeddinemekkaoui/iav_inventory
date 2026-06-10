@@ -14,6 +14,22 @@ The folders are created automatically when the app starts. To use a different da
 INVENTAIRE_DATA_DIR=C:\InventaireData
 ```
 
+You can also choose the desktop app local server port from `.env`:
+
+```txt
+INVENTAIRE_PORT=38217
+```
+
+If this port is already in use, the desktop app automatically selects the next available port.
+
+For `npm run dev` / `npm start`, the web server port is controlled by:
+
+```txt
+PORT=3000
+```
+
+If that port is already in use, the start script automatically retries with the next available port.
+
 Add demonstration data:
 
 ```bash

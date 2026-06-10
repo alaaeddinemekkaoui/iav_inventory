@@ -15,7 +15,7 @@ export function LoginForm() {
   return (
     <form action={formAction} className="grid gap-4 px-6 py-6">
       {state.message && (
-        <p role="alert" aria-live="polite" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p role="alert" aria-live="polite" className="rounded-lg border border-iav-red/25 bg-iav-red-soft px-3 py-2 text-sm text-iav-red">
           {state.message}
         </p>
       )}

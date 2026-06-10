@@ -33,7 +33,7 @@ export function FlashToast({ flash }: { flash: FlashMessage }) {
       aria-live={isSuccess ? "polite" : "assertive"}
       className={cn(
         "fixed right-4 top-4 z-50 flex w-[min(420px,calc(100vw-32px))] items-start gap-3 rounded-xl border bg-white px-4 py-3 shadow-lg",
-        isSuccess ? "border-emerald-200 text-emerald-900" : "border-rose-200 text-rose-900",
+        isSuccess ? "border-iav-green/25 text-iav-green" : "border-iav-red/25 text-iav-red",
       )}
     >
       <Icon size={19} className="mt-0.5 shrink-0" />

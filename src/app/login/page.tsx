@@ -12,9 +12,9 @@ export default async function LoginPage() {
   const setupMode = !configured;
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#eef3ef] px-4 py-10">
+    <main className="grid min-h-dvh place-items-center bg-iav-background px-4 py-10">
       <section className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-        <div className="border-b border-slate-100 bg-[#f8faf8] px-6 py-6">
+        <div className="border-b border-slate-100 bg-iav-cream px-6 py-6">
           <div className="flex items-center gap-4">
             <Image src="/iav-logo.png" alt="Logo IAV Hassan II" width={72} height={72} className="size-18 rounded-full object-contain" priority />
             <div>

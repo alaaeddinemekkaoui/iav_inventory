@@ -5,12 +5,12 @@ import { MovementFilterForm } from "@/components/movement-filter-form";
 import { Content, getPage, MovementTable, PageHeader, paginate, Pagination, Panel } from "@/components/inventory-ui";
 import { requireUser } from "@/lib/auth";
 import { readInventory } from "@/lib/store";
-import { createQueryString, getSortDirection, getSortKey, getStringParam, matchesGlobalSearch, movementSortKeys, sortRecords } from "@/lib/search";
 import { getFullAssetCode } from "@/lib/coding";
+import { createQueryString, getSortDirection, getSortKey, getStringParam, matchesGlobalSearch, movementSortKeys, sortRecords } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
-export default async function DechargePage({
+export default async function ReformePage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -36,8 +36,8 @@ export default async function DechargePage({
   return (
     <main>
       <PageHeader
-        title="Decharge"
-        description="Sortir un materiel affecte du parc. Un materiel decharge ne peut plus etre affecte."
+        title="Reforme"
+        description="Sortir un materiel affecte du parc. Un materiel reforme ne peut plus etre affecte."
         action={
           <MovementDialog type="DECHARGE">
             <MovementForm type="DECHARGE" materials={activeMaterials} settings={data.settings} />
@@ -46,10 +46,10 @@ export default async function DechargePage({
       />
       <Content>
         <section>
-          <Panel title="Decharges" icon={<ShieldCheck size={18} />} aside={`${filteredMovements.length} sur ${movements.length} operations`}>
-            <MovementFilterForm basePath="/decharge" query={query} sort={sort} direction={direction} />
-            <MovementTable movements={pageMovements} settings={data.settings} basePath="/decharge" query={preservedQuery} sort={sort} direction={direction} />
-            <Pagination page={page} total={filteredMovements.length} basePath="/decharge" query={preservedQuery} />
+          <Panel title="Reformes" icon={<ShieldCheck size={18} />} aside={`${filteredMovements.length} sur ${movements.length} operations`}>
+            <MovementFilterForm basePath="/reforme" query={query} sort={sort} direction={direction} />
+            <MovementTable movements={pageMovements} settings={data.settings} showFullName={false} basePath="/reforme" query={preservedQuery} sort={sort} direction={direction} />
+            <Pagination page={page} total={filteredMovements.length} basePath="/reforme" query={preservedQuery} />
           </Panel>
         </section>
       </Content>

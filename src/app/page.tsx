@@ -13,6 +13,7 @@ import { Badge, Content, formatDate, MovementList, PageHeader, Panel, Stat } fro
 import { requireUser } from "@/lib/auth";
 import { Material, readInventory } from "@/lib/store";
 import { statusLabel } from "@/lib/inventory";
+import { getFullAssetCode, getNextSerial } from "@/lib/coding";
 import { buttonStyles } from "@/lib/ui";
 
 export const dynamic = "force-dynamic";
@@ -25,8 +26,7 @@ export default async function DashboardPage() {
   const lastMovements = movements.slice(0, 5);
   const lastMaterials = [...materials].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
   const stock = materials.filter((item) => item.status === "STOCK");
-  const lastMaterial = materials.at(-1);
-  const nextCode = (lastMaterial?.codeBarre ?? 122) + 1;
+  const nextCode = getNextSerial(materials, data.settings);
   const countByStatus = materials.reduce<Record<string, number>>((acc, item) => {
     acc[item.status] = (acc[item.status] ?? 0) + 1;
     return acc;
@@ -46,10 +46,10 @@ export default async function DashboardPage() {
           <Panel title="Statistiques" icon={<CheckCircle2 size={18} />} aside={`Prochain code ${nextCode}`}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <Stat icon={<Boxes size={18} />} label="Inventaire" value={materials.length} detail={`Prochain ${nextCode}`} />
-              <Stat icon={<CheckCircle2 size={18} />} label="Disponible" value={countByStatus.STOCK ?? 0} detail={`${stockRate}% du parc`} />
-              <Stat icon={<FileInput size={18} />} label="Dispatch" value={countByStatus.DISPATCHED ?? 0} detail="Affectation initiale" />
+              <Stat icon={<CheckCircle2 size={18} />} label="En inventaire" value={countByStatus.STOCK ?? 0} detail={`${stockRate}% du parc`} />
+              <Stat icon={<FileInput size={18} />} label="Affecte / Dispatche" value={countByStatus.DISPATCHED ?? 0} detail="Affectation initiale" />
               <Stat icon={<ArrowRightLeft size={18} />} label="Mutation" value={countByStatus.MUTATED ?? 0} detail="Changement owner" />
-              <Stat icon={<Trash2 size={18} />} label="Decharge" value={countByStatus.DECHARGED ?? 0} detail="Sortie du parc" />
+              <Stat icon={<Trash2 size={18} />} label="Reforme" value={(countByStatus.REFORMED ?? 0) + (countByStatus.DECHARGED ?? 0)} detail="Sortie du parc" />
             </div>
           </Panel>
 
@@ -149,8 +149,8 @@ function QuickLink({
   icon: React.ReactNode;
 }) {
   return (
-    <Link href={href} className="flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-[#f8faf8] px-4 py-3 text-slate-700 outline-none hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 focus-visible:ring-2 focus-visible:ring-teal-700">
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-teal-700 shadow-sm">{icon}</span>
+    <Link href={href} className="flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-iav-cream px-4 py-3 text-slate-700 outline-none hover:border-iav-green/25 hover:bg-iav-green-soft hover:text-iav-green focus-visible:ring-2 focus-visible:ring-iav-green">
+      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white text-iav-green shadow-sm">{icon}</span>
       <span className="min-w-0">
         <span className="block text-sm font-semibold text-slate-950">{label}</span>
         <span className="mt-1 block text-xs leading-5 text-slate-500">{description}</span>
@@ -169,8 +169,8 @@ function LastMaterials({ materials }: { materials: Material[] }) {
         materials.map((item) => (
           <div key={item.id} className="grid gap-2 py-4 sm:grid-cols-[130px_1fr_180px_150px] sm:items-center">
             <div>
-              <p className="text-sm font-semibold tabular-nums">Code barre {item.codeBarre}</p>
-              <p className="text-xs text-slate-500">Code famille {item.codeFamille}</p>
+              <p className="text-sm font-semibold tabular-nums">Code barre</p>
+              <p className="text-xs text-slate-500">{getFullAssetCode(item)}</p>
             </div>
             <div>
               <p className="text-sm font-semibold">{item.designation ?? "Materiel"}</p>

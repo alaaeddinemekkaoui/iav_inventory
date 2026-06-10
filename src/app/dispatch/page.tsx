@@ -6,6 +6,7 @@ import { Content, getPage, MovementTable, PageHeader, paginate, Pagination, Pane
 import { requireUser } from "@/lib/auth";
 import { readInventory } from "@/lib/store";
 import { createQueryString, getSortDirection, getSortKey, getStringParam, matchesGlobalSearch, movementSortKeys, sortRecords } from "@/lib/search";
+import { getFullAssetCode } from "@/lib/coding";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function DispatchPage({
   const movements = [...data.movements]
     .filter((item) => item.type === "DISPATCH")
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const filteredMovements = movements.filter((movement) => matchesGlobalSearch(movement, query));
+  const filteredMovements = movements.filter((movement) => matchesGlobalSearch({ ...movement, fullAssetCode: getFullAssetCode(movement) }, query));
   const sortedMovements = sortRecords(filteredMovements, sort, direction);
   const pageMovements = paginate(sortedMovements, page);
   const preservedQuery = createQueryString({ q: query, sort, dir: direction });
@@ -36,7 +37,7 @@ export default async function DispatchPage({
     <main>
       <PageHeader
         title="Dispatch"
-        description="Affecter un materiel disponible. La liste commence par le plus petit code barre libre."
+        description="Affecter un materiel en inventaire. Le nom du beneficiaire et le code local sont obligatoires."
         action={
           <MovementDialog type="DISPATCH">
             <MovementForm type="DISPATCH" materials={stockMaterials} settings={data.settings} requireDecision />
@@ -47,7 +48,7 @@ export default async function DispatchPage({
         <section>
           <Panel title="Dispatchs" icon={<FileInput size={18} />} aside={`${filteredMovements.length} sur ${movements.length} operations`}>
             <MovementFilterForm basePath="/dispatch" query={query} sort={sort} direction={direction} />
-            <MovementTable movements={pageMovements} basePath="/dispatch" query={preservedQuery} sort={sort} direction={direction} />
+            <MovementTable movements={pageMovements} settings={data.settings} basePath="/dispatch" query={preservedQuery} sort={sort} direction={direction} />
             <Pagination page={page} total={filteredMovements.length} basePath="/dispatch" query={preservedQuery} />
           </Panel>
         </section>

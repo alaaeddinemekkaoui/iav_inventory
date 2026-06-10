@@ -27,9 +27,9 @@ const dialogContent: Record<
     icon: ArrowRightLeft,
   },
   DECHARGE: {
-    label: "Nouvelle decharge",
-    title: "Nouvelle decharge",
-    description: "Selectionne le materiel a sortir du parc et valide la decharge.",
+    label: "Nouvelle reforme",
+    title: "Nouvelle reforme",
+    description: "Selectionne le materiel a sortir du parc et valide la reforme.",
     icon: ShieldCheck,
   },
 };

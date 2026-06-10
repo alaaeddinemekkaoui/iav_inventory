@@ -15,12 +15,12 @@ export function buttonStyles({
   className?: string;
 } = {}) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold outline-none focus-visible:ring-2 focus-visible:ring-iav-green focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
     {
-      "bg-teal-700 text-white shadow-sm hover:bg-teal-800": variant === "primary",
+      "bg-iav-green text-white shadow-sm hover:bg-iav-green-dark": variant === "primary",
       "border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950":
         variant === "secondary",
-      "border border-rose-200 bg-white text-rose-700 hover:bg-rose-50": variant === "danger",
+      "border border-iav-red/25 bg-white text-iav-red hover:bg-iav-red-soft": variant === "danger",
       "text-slate-500 hover:bg-slate-100 hover:text-slate-950": variant === "ghost",
       "h-10 px-4 text-sm": size === "md",
       "h-9 px-3 text-xs": size === "sm",
@@ -32,8 +32,7 @@ export function buttonStyles({
 }
 
 export const fieldStyles =
-  "min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15";
+  "min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-iav-green focus:ring-2 focus:ring-iav-green/15";
 
 export const dialogStyles =
   "fixed inset-0 m-auto max-h-[calc(100dvh-48px)] overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-950 shadow-xl backdrop:bg-slate-950/45";
-

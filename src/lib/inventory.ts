@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const materialStatuses = ["STOCK", "DISPATCHED", "MUTATED", "DECHARGED"] as const;
+export const materialStatuses = ["STOCK", "DISPATCHED", "MUTATED", "DECHARGED", "REFORMED"] as const;
 export type MaterialStatus = (typeof materialStatuses)[number];
 
 export const movementTypes = ["DISPATCH", "MUTATION", "DECHARGE"] as const;
@@ -15,6 +15,14 @@ export const materialFields = [
   "designation",
   "marque",
   "model",
+  "puHt",
+  "puTtc",
+  "ptHt",
+  "ptTtc",
+  "tvaRate",
+  "prixUnitaire",
+  "prixHt",
+  "prixTtc",
   "valeurBase",
   "dateEntree",
   "duree",
@@ -52,13 +60,21 @@ export const addRangeSchema = z
   .object({
     startCodeBarre: optionalInt,
     endCodeBarre: optionalInt,
-    codeFamille: z.string().trim().min(1),
+    codeFamille: text,
     sousFamille: text,
     categorie: text,
     numeroSeriePrefix: text,
     designation: text,
     marque: text,
     model: text,
+    puHt: optionalDecimal,
+    puTtc: optionalDecimal,
+    ptHt: optionalDecimal,
+    ptTtc: optionalDecimal,
+    tvaRate: optionalDecimal,
+    prixUnitaire: optionalDecimal,
+    prixHt: optionalDecimal,
+    prixTtc: optionalDecimal,
     valeurBase: optionalDecimal,
     dateEntree: optionalDate,
     duree: optionalInt,
@@ -99,20 +115,28 @@ export const movementSchema = z.object({
 export const editCodesSchema = z.object({
   materialId: z.string().min(1),
   codeBarre: intText.min(1),
-  codeFamille: z.string().trim().min(1),
+  codeFamille: text,
   numeroSerie: text,
 });
 
 export const adminMaterialSchema = z.object({
   materialId: z.string().min(1),
   codeBarre: intText.min(1),
-  codeFamille: z.string().trim().min(1),
+  codeFamille: text,
   sousFamille: text,
   categorie: text,
   numeroSerie: text,
   designation: text,
   marque: text,
   model: text,
+  puHt: optionalDecimal,
+  puTtc: optionalDecimal,
+  ptHt: optionalDecimal,
+  ptTtc: optionalDecimal,
+  tvaRate: optionalDecimal,
+  prixUnitaire: optionalDecimal,
+  prixHt: optionalDecimal,
+  prixTtc: optionalDecimal,
   valeurBase: optionalDecimal,
   dateEntree: optionalDate,
   duree: optionalInt,
@@ -132,10 +156,11 @@ export const adminMaterialSchema = z.object({
 
 export function statusLabel(status: MaterialStatus) {
   const labels: Record<MaterialStatus, string> = {
-    STOCK: "Disponible",
-    DISPATCHED: "Dispatch",
+    STOCK: "En Inventaire",
+    DISPATCHED: "Affecte / Dispatche",
     MUTATED: "Mutation",
     DECHARGED: "Decharge",
+    REFORMED: "Reforme",
   };
 
   return labels[status];
@@ -145,7 +170,7 @@ export function movementLabel(type: MovementType) {
   const labels: Record<MovementType, string> = {
     DISPATCH: "Dispatch",
     MUTATION: "Mutation",
-    DECHARGE: "Decharge",
+    DECHARGE: "Reforme",
   };
 
   return labels[type];

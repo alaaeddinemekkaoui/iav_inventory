@@ -32,14 +32,28 @@ export function MaterialEditDialog({
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className={buttonStyles({ variant: "secondary", size: "icon-sm" })}
+            className={buttonStyles({ variant: "secondary", size: "sm" })}
             aria-label="Fermer"
           >
             <X size={17} />
+            Terminer
           </button>
         </div>
         <div className="max-h-[calc(100dvh-146px)] overflow-y-auto p-5">{children}</div>
       </dialog>
     </>
+  );
+}
+
+export function DialogCloseButton({ children = "Terminer" }: { children?: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={(event) => event.currentTarget.closest("dialog")?.close()}
+      className={buttonStyles({ variant: "secondary" })}
+    >
+      <X size={17} />
+      {children}
+    </button>
   );
 }
